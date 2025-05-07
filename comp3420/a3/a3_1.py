@@ -84,26 +84,15 @@ def sim_tfidf(csv_file_path):
     dataset = pd.read_csv(csv_file_path)
     unique_questions = dataset.question.unique()
     all_answers = dataset.answer
-    corpus = np.concatenate([unique_questions, all_answers])
+    set = np.concatenate([unique_questions, all_answers])
 
-    vectorizer = TfidfVectorizer(stop_words='english')
-    vectorizer.fit(corpus)
+    vectorizer = TfidfVectorizer(stop_words='english')  # keep default L2 norm
+    matrix = vectorizer.fit_transform(set)
 
-    correct = 0
-    total = 0
+    simi = cosine_similarity(matrix[:len(unique_questions)],matrix[len(unique_questions):])
+    accuracy = round(sum(dataset.label[simi.argmax(axis=1)]) / len(unique_questions), 4)
 
-    for question in unique_questions:
-      df = dataset[dataset.question == question]
-      answers = df.answer.tolist()
-      labels = df.label.tolist()
-
-      tfidf = vectorizer.transform([question] + answers)
-      best_index = cosine_similarity(tfidf[0], tfidf[1:]).argmax()
-
-      correct += labels[best_index]
-      total += 1
-
-    return correct / total
+    return accuracy
 
     
 # DO NOT MODIFY BELOW
